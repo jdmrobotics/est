@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import { demoSurvey } from '../src/export.js';
+import { withCalculatedFields } from '../src/validation.js';
+import { buildQuickObservationDraft } from '../src/species.js';
+import { runFullQaqc } from '../src/qaqc.js';
+
+const demo = demoSurvey();
+const survey = { id: 'quick-observation-test', mission: demo.mission, site: demo.site };
+const taxon = { id: 'list-1|pilot_taxon', list_id: 'list-1', list_name: 'Pilot controlled list', taxon_key: 'pilot_taxon', scientific_name: 'Example fish', common_name: 'Example fish', taxonomic_level: 'species', group: 'Fish', default_habitat: 'sand' };
+const quick = buildQuickObservationDraft({ taxon, stationSequence: 1, transectSequence: 1, observationSequence: 2, count: 3, observer: 'Demo Observer', observedAt: new Date().toISOString() });
+const record = withCalculatedFields('observations', quick, demo.mission, demo.site);
+assert.equal(record.station_id, demo.records.stations[0].station_id);
+assert.equal(record.transect_id, demo.records.transects[0].transect_id);
+demo.records.observations.push(record);
+const result = runFullQaqc(survey, demo.records, { require_environment_per_station: true, bbox: {} });
+assert.equal(result.summary.errors, 0, JSON.stringify(result.findings, null, 2));
+const broken = { ...record, taxon_key: '' };
+demo.records.observations = [broken];
+const resultBroken = runFullQaqc(survey, demo.records, { require_environment_per_station: true, bbox: {} });
+assert.ok(resultBroken.findings.some((finding) => finding.rule === 'taxon_list_reference'), 'missing controlled key should be detected');
+console.log('Quick-observation QA/QC integration smoke test passed.');

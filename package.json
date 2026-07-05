@@ -1,0 +1,10 @@
+{
+  "name": "ecosurvey-field-app",
+  "version": "0.15.0",
+  "private": true,
+  "type": "module",
+  "description": "Offline-first EcoSurvey progressive web app",
+  "scripts": {
+    "test": "node tests/qaqc_smoke_test.mjs && node tests/map_smoke_test.mjs && node tests/basemap_smoke_test.mjs && node tests/media_capture_smoke_test.mjs && node tests/media_capture_integration_smoke_test.mjs && node tests/tracking_smoke_test.mjs && node tests/tracks_qaqc_smoke_test.mjs && node tests/transect_builder_smoke_test.mjs && node tests/species_lists_smoke_test.mjs && node tests/quick_observation_integration_smoke_test.mjs && node tests/debrief_smoke_test.mjs && node tests/world_reference_smoke_test.mjs && node tests/inaturalist_taxon_smoke_test.mjs && node tests/qgis_geojson_compatibility_smoke_test.mjs && node tests/taxon_pack_smoke_test.mjs && node tests/samples_smoke_test.mjs && node tests/protocols_smoke_test.mjs && node tests/rov_smoke_test.mjs && node tests/sensor_streams_smoke_test.mjs && node tests/sensor_profiles_smoke_test.mjs"
+  }
+}

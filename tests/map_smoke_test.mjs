@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import { demoSurvey } from '../src/export.js';
+import { buildMapModel, MAP_LAYERS, mapScene, selectedFeatureSummary } from '../src/map.js';
+
+const demo = demoSurvey();
+const model = buildMapModel({ mission: demo.mission, site: demo.site }, demo.records);
+assert.equal(model.features.length, 8, 'demo should provide site, station, GPS track, transect, observation, environment, sample, and media map features');
+assert.equal(model.shown.sites, 1);
+assert.equal(model.shown.stations, 1);
+assert.equal(model.shown.tracks, 1);
+assert.equal(model.shown.transects, 1);
+assert.equal(model.shown.observations, 1);
+assert.equal(model.shown.environment, 1);
+assert.equal(model.shown.samples, 1);
+assert.equal(model.shown.media, 1);
+assert.equal(MAP_LAYERS.length, 11);
+assert.equal(model.shown.rov_operations, 0);
+assert.equal(model.shown.video_logs, 0);
+assert.equal(model.shown.sensor_readings, 0);
+const scene = mapScene(model.features);
+assert.equal(scene.empty, false);
+assert.ok(Number.isFinite(scene.scaleMeters));
+const station = model.features.find((feature) => feature.layer === 'stations');
+const summary = selectedFeatureSummary(station);
+assert.equal(summary.id, demo.records.stations[0].station_id);
+assert.equal(summary.coordinateSource, 'station_gps');
+console.log('Map smoke test passed.');
