@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="EcoSurvey">
-  <rect width="256" height="256" rx="48" fill="#0b4f56"/>
-  <path d="M24 144c32-18 57-18 89 0s57 18 89 0v48H24z" fill="#2aa7aa"/>
-  <path d="M25 182c34-17 67-17 101 0s68 17 105 0v50H25z" fill="#0e7890"/>
-  <path d="M127 38c-36 37-43 71-1 111 42-40 35-74 1-111z" fill="#d9e77e"/>
-  <path d="M128 44v95" stroke="#f7fbf5" stroke-width="10" stroke-linecap="round"/>
-  <circle cx="128" cy="143" r="17" fill="#f7fbf5"/>
-</svg>
