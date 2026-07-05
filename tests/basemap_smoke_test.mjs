@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import { validBbox, bboxFromPack, validateBasemapInput, aspectRatioWarning, publicBasemapMetadata } from '../src/basemap.js';
+import { demoSurvey } from '../src/export.js';
+import { buildMapModel, mapScene, renderMapSvg } from '../src/map.js';
+
+const bounds = { min_lon: '-75.0910', min_lat: '38.7790', max_lon: '-75.0890', max_lat: '38.7810' };
+assert.equal(validBbox(bounds), true, 'valid WGS 84 bounds should be accepted');
+assert.equal(validBbox({ ...bounds, max_lon: '-75.1000' }), false, 'reversed longitude bounds should fail');
+assert.deepEqual(bboxFromPack(bounds), { minLon: -75.091, minLat: 38.779, maxLon: -75.089, maxLat: 38.781 });
+const file = { type: 'image/png', size: 1024 };
+assert.deepEqual(validateBasemapInput({ name: 'Pilot map', source_name: 'Test source', source_date: '2026-07-03', ...bounds }, file), []);
+assert.ok(aspectRatioWarning(bounds, 1000, 100) !== '', 'strongly distorted source image should prompt a bound check');
+const meta = publicBasemapMetadata({ id: 'pack-1', surveyId: 'survey-1', name: 'Pilot map', source_name: 'Test source', source_date: '2026-07-03', ...bounds, image_blob: { ignore: true }, image_bytes: 1024 });
+assert.equal('image_blob' in meta, false, 'metadata export must not leak the stored image blob');
+const demo = demoSurvey();
+const model = buildMapModel({ mission: demo.mission, site: demo.site }, demo.records);
+const pack = { ...bounds, name: 'Test pack', source_name: 'Test source', source_date: '2026-07-03', image_url: 'blob:test', opacity: 0.7 };
+const scene = mapScene(model.features, null, pack);
+assert.equal(scene.empty, false, 'a bounded basemap should produce a usable scene');
+const svg = renderMapSvg(model.features, null, null, pack);
+assert.match(svg, /Offline basemap: Test pack/);
+assert.match(svg, /blob:test/);
+console.log('Basemap smoke test passed.');

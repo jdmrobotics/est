@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';
+import { captureModeFromMediaType, captureTargetValue, extensionFromName, makeCaptureDraft, mediaTypeFromFile, parseCaptureTarget, parentPromotionPlan, sequenceForCapture, validateLocalMedia } from '../src/media_capture.js';
+
+const file = { name: 'IMG_0001.JPG', type: 'image/jpeg', size: 2_048_000 };
+assert.equal(mediaTypeFromFile(file), 'photo');
+assert.equal(captureModeFromMediaType('video'), 'capture_video');
+assert.equal(extensionFromName('folder/clip.MP4'), 'mp4');
+const target = parseCaptureTarget('transect:2:3');
+assert.deepEqual(target, { context: 'transect', stationSequence: 2, transectSequence: 3 });
+assert.equal(captureTargetValue(target), 'transect:2:3');
+const records = { media: [{ media_sequence: 1 }, { media_sequence: 3 }] };
+assert.equal(sequenceForCapture(records), 4);
+const draft = makeCaptureDraft({ mission: { mission_id: 'ES-20260703-01', mission_lead: 'Justin' }, recordsByTable: records, target, file, location: { lat: 38.78, lon: -75.09, accuracy: 7 } });
+assert.equal(draft.media_sequence, 4);
+assert.equal(draft.media_link_context, 'transect');
+assert.equal(draft.media_station_sequence, 2);
+assert.equal(draft.media_transect_sequence, 3);
+assert.equal(draft.media_type, 'photo');
+assert.equal(draft.media_capture_mode, 'capture_photo');
+assert.equal(draft.storage_path, 'Media/ES-20260703-01/');
+assert.equal(draft.latitude_dd, '38.780000');
+assert.equal(validateLocalMedia(file).length, 0);
+assert.ok(validateLocalMedia({ name: 'huge.mp4', type: 'video/mp4', size: 300 * 1024 * 1024 }).length > 0);
+const plan = parentPromotionPlan(target, 'ES-20260703-01-M004');
+assert.equal(plan.table, 'transects');
+assert.equal(plan.field, 'media_id_primary');
+assert.ok(plan.match({ parent_station_sequence: 2, transect_sequence: 3 }));
+console.log('Media capture smoke test passed.');

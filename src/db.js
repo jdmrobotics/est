@@ -1,5 +1,5 @@
 const DB_NAME = 'ecosurvey-field-app';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 let dbPromise;
 
 function openDb() {
@@ -105,6 +105,16 @@ export async function deleteRecord(surveyId, table, id) {
   const db = await openDb();
   return requestPromise(db.transaction('records', 'readwrite').objectStore('records').delete(`${surveyId}|${table}|${id}`));
 }
+export async function saveRecordsBatch(surveyId, entries = []) {
+  const db = await openDb();
+  const tx = db.transaction('records', 'readwrite');
+  const store = tx.objectStore('records');
+  entries.forEach(({ table, id, data }) => {
+    if (!table || !id) throw new Error('Batch record is missing table or ID.');
+    store.put({ key: `${surveyId}|${table}|${id}`, surveyId, table, id, data });
+  });
+  return new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error || new Error('Batch record save aborted.')); });
+}
 export async function saveAttachment(attachment) {
   const db = await openDb();
   const tx = db.transaction('attachments', 'readwrite');
@@ -189,7 +199,14 @@ export async function replaceTaxaForList(list, taxaRows) {
   const index = tx.objectStore('taxa').index('byList');
   const request = index.openCursor(IDBKeyRange.only(list.id));
   request.onsuccess = () => { const cursor = request.result; if (cursor) { cursor.delete(); cursor.continue(); } };
-  taxaRows.forEach((row) => tx.objectStore('taxa').put({ ...row, id: `${list.id}|${row.taxon_key}`, list_id: list.id, list_name: list.name, project_id: list.project_id }));
+  const packFields = list.list_kind === 'regional_pack' ? {
+    taxon_pack_id: list.taxon_pack_id || '',
+    taxon_pack_name: list.taxon_pack_name || list.name || '',
+    taxon_pack_version: list.taxon_pack_version || '',
+    taxon_pack_region: list.taxon_pack_region || '',
+    taxon_pack_review_status: list.taxon_pack_review_status || ''
+  } : {};
+  taxaRows.forEach((row) => tx.objectStore('taxa').put({ ...row, ...packFields, id: `${list.id}|${row.taxon_key}`, list_id: list.id, list_name: list.name, project_id: list.project_id }));
   return new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); });
 }
 export async function saveTaxon(taxon) {

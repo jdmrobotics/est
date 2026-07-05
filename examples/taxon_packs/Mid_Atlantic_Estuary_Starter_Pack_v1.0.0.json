@@ -1,0 +1,49 @@
+{
+  "format": "ecosurvey-taxon-pack",
+  "format_version": "1.0",
+  "manifest": {
+    "pack_id": "mid_atlantic_estuary_starter",
+    "name": "Mid-Atlantic Estuary Starter Pack",
+    "version": "1.0.0",
+    "description": "A small demonstration pack for EcoSurvey dry runs in Mid-Atlantic estuaries. It is not a complete checklist and must not be used as an authority for regulatory, conservation, or publishable biodiversity conclusions.",
+    "region_name": "Mid-Atlantic estuaries — demonstration coverage",
+    "country_or_waterbody": "United States / Delaware Bay and nearby estuarine habitats",
+    "geographic_scope": {
+      "bounds": { "min_lat": 37.0, "min_lon": -77.0, "max_lat": 41.5, "max_lon": -73.0 }
+    },
+    "habitat_scope": "Estuarine shorelines, tidal marsh, oyster reef, seagrass, open water, and nearshore benthic habitat",
+    "taxonomic_scope": "Selected demonstration fish, invertebrates, macroalgae, and vascular plants",
+    "review_status": "draft",
+    "reviewed_by": "",
+    "curator": "EcoSurvey bundled demonstration content",
+    "published_date": "2026-07-05",
+    "license": "Demo content only; replace or review before scientific use.",
+    "source_summary": "Starter content for application testing. Replace with a documented regional authority or approved project checklist before analytical use.",
+    "sources": [],
+    "starter_pack": true,
+    "notes": "All selections require field confirmation and an appropriate identification confidence level."
+  },
+  "taxa": [
+    {"taxon_key":"crassostrea_virginica","scientific_name":"Crassostrea virginica","common_name":"Eastern oyster","taxonomic_level":"species","group":"Bivalve","native_status":"native","default_habitat":"oyster_reef","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"mercenaria_mercenaria","scientific_name":"Mercenaria mercenaria","common_name":"Hard clam","taxonomic_level":"species","group":"Bivalve","native_status":"native","default_habitat":"sand","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"geukensia_demissa","scientific_name":"Geukensia demissa","common_name":"Ribbed mussel","taxonomic_level":"species","group":"Bivalve","native_status":"native","default_habitat":"mud","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"callinectes_sapidus","scientific_name":"Callinectes sapidus","common_name":"Blue crab","taxonomic_level":"species","group":"Crustacean","native_status":"native","default_habitat":"mixed","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"limulus_polyphemus","scientific_name":"Limulus polyphemus","common_name":"American horseshoe crab","taxonomic_level":"species","group":"Chelicerate","native_status":"native","default_habitat":"sand","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"menidia_menidia","scientific_name":"Menidia menidia","common_name":"Atlantic silverside","taxonomic_level":"species","group":"Fish","native_status":"native","default_habitat":"open_water","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"fundulus_heteroclitus","scientific_name":"Fundulus heteroclitus","common_name":"Mummichog","taxonomic_level":"species","group":"Fish","native_status":"native","default_habitat":"mud","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"morone_americana","scientific_name":"Morone americana","common_name":"White perch","taxonomic_level":"species","group":"Fish","native_status":"native","default_habitat":"open_water","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"morone_saxatilis","scientific_name":"Morone saxatilis","common_name":"Striped bass","taxonomic_level":"species","group":"Fish","native_status":"native","default_habitat":"open_water","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"opsanus_tau","scientific_name":"Opsanus tau","common_name":"Oyster toadfish","taxonomic_level":"species","group":"Fish","native_status":"native","default_habitat":"oyster_reef","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"paralichthys_dentatus","scientific_name":"Paralichthys dentatus","common_name":"Summer flounder","taxonomic_level":"species","group":"Fish","native_status":"native","default_habitat":"sand","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"leiostomus_xanthurus","scientific_name":"Leiostomus xanthurus","common_name":"Spot","taxonomic_level":"species","group":"Fish","native_status":"native","default_habitat":"sand","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"brevoortia_tyrannus","scientific_name":"Brevoortia tyrannus","common_name":"Atlantic menhaden","taxonomic_level":"species","group":"Fish","native_status":"native","default_habitat":"open_water","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"anguilla_rostrata","scientific_name":"Anguilla rostrata","common_name":"American eel","taxonomic_level":"species","group":"Fish","native_status":"native","default_habitat":"mixed","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"palaemon_pugio","scientific_name":"Palaemon pugio","common_name":"Daggerblade grass shrimp","taxonomic_level":"species","group":"Crustacean","native_status":"native","default_habitat":"seagrass","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"uca_pugnax","scientific_name":"Minuca pugnax","common_name":"Mud fiddler crab","taxonomic_level":"species","group":"Crustacean","native_status":"native","default_habitat":"mud","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"littoraria_irrorata","scientific_name":"Littoraria irrorata","common_name":"Marsh periwinkle","taxonomic_level":"species","group":"Gastropod","native_status":"native","default_habitat":"mud","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"zostera_marina","scientific_name":"Zostera marina","common_name":"Eelgrass","taxonomic_level":"species","group":"Vascular plant","native_status":"native","default_habitat":"seagrass","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"ruppia_maritima","scientific_name":"Ruppia maritima","common_name":"Widgeon grass","taxonomic_level":"species","group":"Vascular plant","native_status":"native","default_habitat":"seagrass","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"spartina_alterniflora","scientific_name":"Spartina alterniflora","common_name":"Smooth cordgrass","taxonomic_level":"species","group":"Vascular plant","native_status":"native","default_habitat":"mud","taxon_source":"regional_pack","notes":""},
+    {"taxon_key":"ulva_lactuca","scientific_name":"Ulva lactuca","common_name":"Sea lettuce","taxonomic_level":"species","group":"Macroalgae","native_status":"unknown","default_habitat":"rock","taxon_source":"regional_pack","notes":""}
+  ]
+}

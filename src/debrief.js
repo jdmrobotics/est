@@ -4,6 +4,7 @@
  * used by the QA/QC and GeoJSON workflows. No network or PDF library required.
  */
 import { buildMapModel, renderMapSvg } from './map.js';
+import { summarizeRovOperation } from './rov.js';
 
 const esc = (value = '') => String(value ?? '').replace(/[&<>'"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[ch]));
 const txt = (value = '') => String(value ?? '').trim();
@@ -50,7 +51,7 @@ function qaState(qaqcRun, isCurrent) {
 export function buildFieldDebrief(survey = {}, recordsByTable = {}, qaqcRun = null, isCurrent = false) {
   const mission = survey.mission || {}; const site = survey.site || {};
   const records = {
-    equipment: recordsByTable.equipment || [], stations: recordsByTable.stations || [], tracks: recordsByTable.tracks || [], transects: recordsByTable.transects || [], environment: recordsByTable.environment || [], observations: recordsByTable.observations || [], media: recordsByTable.media || []
+    equipment: recordsByTable.equipment || [], rov_operations: recordsByTable.rov_operations || [], video_logs: recordsByTable.video_logs || [], sensor_streams: recordsByTable.sensor_streams || [], sensor_readings: recordsByTable.sensor_readings || [], stations: recordsByTable.stations || [], tracks: recordsByTable.tracks || [], transects: recordsByTable.transects || [], environment: recordsByTable.environment || [], observations: recordsByTable.observations || [], samples: recordsByTable.samples || [], custody: recordsByTable.custody || [], media: recordsByTable.media || []
   };
   const observationGroups = new Map();
   records.observations.forEach((row) => {
@@ -71,25 +72,28 @@ export function buildFieldDebrief(survey = {}, recordsByTable = {}, qaqcRun = nu
   const totalTransectLength = records.transects.reduce((sum, row) => sum + Math.max(0, Number(row.length_m) || 0), 0);
   const totalTrackDistance = records.tracks.reduce((sum, row) => sum + Math.max(0, Number(row.distance_m) || 0), 0);
   const totalObservationCount = records.observations.reduce((sum, row) => sum + Math.max(0, Number(row.count) || 0), 0);
+  const rovSummaries = records.rov_operations.map((operation) => summarizeRovOperation(operation, records.video_logs));
+  const totalRovDurationSeconds = rovSummaries.reduce((sum, item) => sum + (Number(item.duration_seconds) || 0), 0);
+  const environmentalValues = [...records.environment, ...records.sensor_readings];
   const env = [
-    ['Water temperature', metricRange(records.environment, 'temperature_c', '°C'), records.environment.some((row) => finite(row.temperature_c))],
-    ['Salinity', metricRange(records.environment, 'salinity_psu', 'PSU'), records.environment.some((row) => finite(row.salinity_psu))],
-    ['Dissolved oxygen', metricRange(records.environment, 'dissolved_oxygen_mg_l', 'mg/L'), records.environment.some((row) => finite(row.dissolved_oxygen_mg_l))],
-    ['pH', metricRange(records.environment, 'ph', '', 2), records.environment.some((row) => finite(row.ph))],
-    ['Turbidity', metricRange(records.environment, 'turbidity_ntu', 'NTU'), records.environment.some((row) => finite(row.turbidity_ntu))],
-    ['Depth', metricRange(records.environment, 'depth_m', 'm'), records.environment.some((row) => finite(row.depth_m))],
-    ['Water visibility', metricRange(records.environment, 'water_visibility_m', 'm'), records.environment.some((row) => finite(row.water_visibility_m))]
+    ['Water temperature', metricRange(environmentalValues, 'temperature_c', '°C'), environmentalValues.some((row) => finite(row.temperature_c))],
+    ['Salinity', metricRange(environmentalValues, 'salinity_psu', 'PSU'), environmentalValues.some((row) => finite(row.salinity_psu))],
+    ['Dissolved oxygen', metricRange(environmentalValues, 'dissolved_oxygen_mg_l', 'mg/L'), environmentalValues.some((row) => finite(row.dissolved_oxygen_mg_l))],
+    ['pH', metricRange(environmentalValues, 'ph', '', 2), environmentalValues.some((row) => finite(row.ph))],
+    ['Turbidity', metricRange(environmentalValues, 'turbidity_ntu', 'NTU'), environmentalValues.some((row) => finite(row.turbidity_ntu))],
+    ['Depth', metricRange(environmentalValues, 'depth_m', 'm'), environmentalValues.some((row) => finite(row.depth_m))],
+    ['Water visibility', metricRange(environmentalValues, 'water_visibility_m', 'm'), environmentalValues.some((row) => finite(row.water_visibility_m))]
   ].filter(([, , has]) => has).slice(0, 6).map(([label, value]) => ({ label, value }));
 
   return {
     generatedAt: new Date().toISOString(),
     mission: {
-      id: txt(mission.mission_id) || 'UNASSIGNED', name: txt(mission.mission_name) || 'Untitled mission', date: compactDate(mission.mission_date), lead: txt(mission.mission_lead) || 'Not recorded', team: txt(mission.team_members), objective: limit(mission.objective, 280) || 'No objective recorded.', platform: txt(mission.platform) || 'Not recorded', weather: txt(mission.weather_summary) || txt(records.environment.find((row) => txt(row.weather_condition))?.weather_condition) || 'Not recorded'
+      id: txt(mission.mission_id) || 'UNASSIGNED', name: txt(mission.mission_name) || 'Untitled mission', date: compactDate(mission.mission_date), lead: txt(mission.mission_lead) || 'Not recorded', team: txt(mission.team_members), objective: limit(mission.objective, 280) || 'No objective recorded.', protocol: [txt(mission.protocol_name), txt(mission.protocol_version) ? `v${txt(mission.protocol_version)}` : ''].filter(Boolean).join(' ') || 'General / custom', platform: txt(mission.platform) || 'Not recorded', weather: txt(mission.weather_summary) || txt(records.environment.find((row) => txt(row.weather_condition))?.weather_condition) || 'Not recorded'
     },
     site: { id: txt(site.site_id) || 'UNASSIGNED', name: txt(site.site_name) || 'Unnamed site', waterbody: txt(site.waterbody), region: [txt(site.region_state), txt(site.country)].filter(Boolean).join(', '), habitat: txt(site.dominant_habitat) || 'Not recorded', access: limit(site.access_notes, 150) },
     qa: qaState(qaqcRun, isCurrent),
-    counts: { stations: records.stations.length, tracks: records.tracks.length, transects: records.transects.length, environmental: records.environment.length, observations: records.observations.length, media: records.media.length, equipment: records.equipment.length },
-    effort: { transectLengthM: totalTransectLength, trackDistanceM: totalTrackDistance, trackMinutes: durationMinutes(records.tracks), observedIndividuals: totalObservationCount, uniqueTaxa: observationGroups.size, mapped, missingGeometry },
+    counts: { stations: records.stations.length, tracks: records.tracks.length, transects: records.transects.length, environmental: records.environment.length, sensorStreams: records.sensor_streams.length, sensorReadings: records.sensor_readings.length, observations: records.observations.length, samples: records.samples.length, custody: records.custody.length, media: records.media.length, equipment: records.equipment.length, rovOperations: records.rov_operations.length, videoLogs: records.video_logs.length },
+    effort: { transectLengthM: totalTransectLength, trackDistanceM: totalTrackDistance, trackMinutes: durationMinutes(records.tracks), observedIndividuals: totalObservationCount, uniqueTaxa: observationGroups.size, mapped, missingGeometry, rovMaxDepthM: records.rov_operations.reduce((max, row) => Math.max(max, Number(row.max_depth_m) || 0), 0), rovDurationMinutes: totalRovDurationSeconds / 60, rovVideoEvents: records.video_logs.length },
     environment: env,
     keyObservations,
     mapHtml,
@@ -116,16 +120,22 @@ export function renderFieldDebriefBody(debrief, photos = [], { preview = false }
     `${fmt(d.effort.trackDistanceM, 1)} m GPS track distance`,
     `${fmt(d.effort.trackMinutes, 1)} min tracked`,
     `${fmt(d.effort.observedIndividuals, 0)} counted individuals`,
-    `${fmt(d.effort.uniqueTaxa, 0)} taxa`
+    `${fmt(d.effort.uniqueTaxa, 0)} taxa`,
+    `${fmt(d.counts.rovOperations, 0)} ROV operation${d.counts.rovOperations === 1 ? '' : 's'}`,
+    `${fmt(d.counts.videoLogs, 0)} video-log event${d.counts.videoLogs === 1 ? '' : 's'}`,
+    `${fmt(d.counts.sensorStreams, 0)} sensor stream${d.counts.sensorStreams === 1 ? '' : 's'}`,
+    `${fmt(d.counts.sensorReadings, 0)} sensor reading${d.counts.sensorReadings === 1 ? '' : 's'}`,
+    `${fmt(d.effort.rovDurationMinutes, 1)} min ROV operation time`,
+    `${fmt(d.effort.rovMaxDepthM, 1)} m maximum ROV depth`
   ];
   return `<article class="debrief-report ${preview ? 'debrief-preview-report' : ''}">
     <header class="debrief-header"><div><p class="debrief-kicker">EcoSurvey field debrief</p><h1>${esc(d.mission.name)}</h1><p class="debrief-subtitle">${esc(d.mission.id)} · ${esc(d.site.name)} · ${esc(d.mission.date)}</p></div><div class="debrief-status"><span>QA/QC</span>${qaBadge(d.qa)}<small>${esc(d.qa.detail)}</small></div></header>
     <section class="debrief-strip">
-      ${recordMetric('Stations', d.counts.stations)}${recordMetric('Transects', d.counts.transects)}${recordMetric('Observations', d.counts.observations)}${recordMetric('Environmental records', d.counts.environmental)}${recordMetric('Media records', d.counts.media)}
+      ${recordMetric('Stations', d.counts.stations)}${recordMetric('Transects', d.counts.transects)}${recordMetric('Observations', d.counts.observations)}${recordMetric('Environmental / sensor', `${d.counts.environmental} / ${d.counts.sensorReadings}`)}${recordMetric('Samples / custody', `${d.counts.samples} / ${d.counts.custody}`)}
     </section>
     <section class="debrief-layout">
       <div class="debrief-column">
-        <section class="debrief-section"><h2>Mission snapshot</h2><dl class="debrief-kv"><div><dt>Objective</dt><dd>${esc(d.mission.objective)}</dd></div><div><dt>Field lead / team</dt><dd>${esc(d.mission.lead)}${d.mission.team ? ` · ${esc(d.mission.team)}` : ''}</dd></div><div><dt>Platform / weather</dt><dd>${esc(d.mission.platform)} · ${esc(d.mission.weather)}</dd></div><div><dt>Site</dt><dd>${esc(d.site.waterbody || d.site.name)}${d.site.region ? ` · ${esc(d.site.region)}` : ''}</dd></div><div><dt>Dominant habitat</dt><dd>${esc(d.site.habitat)}</dd></div></dl></section>
+        <section class="debrief-section"><h2>Mission snapshot</h2><dl class="debrief-kv"><div><dt>Objective</dt><dd>${esc(d.mission.objective)}</dd></div><div><dt>Field lead / team</dt><dd>${esc(d.mission.lead)}${d.mission.team ? ` · ${esc(d.mission.team)}` : ''}</dd></div><div><dt>Protocol</dt><dd>${esc(d.mission.protocol)}</dd></div><div><dt>Platform / weather</dt><dd>${esc(d.mission.platform)} · ${esc(d.mission.weather)}</dd></div><div><dt>Site</dt><dd>${esc(d.site.waterbody || d.site.name)}${d.site.region ? ` · ${esc(d.site.region)}` : ''}</dd></div><div><dt>Dominant habitat</dt><dd>${esc(d.site.habitat)}</dd></div></dl></section>
         <section class="debrief-section"><h2>Effort & coverage</h2><div class="debrief-effort">${effortDetails.map((item) => `<span>${esc(item)}</span>`).join('')}</div><p class="debrief-footnote">${d.effort.mapped} mapped feature${d.effort.mapped === 1 ? '' : 's'}${d.effort.missingGeometry ? ` · ${d.effort.missingGeometry} record${d.effort.missingGeometry === 1 ? '' : 's'} without usable geometry` : ''}</p></section>
         <section class="debrief-section"><h2>Environmental range</h2>${environmentRows(d.environment)}</section>
         <section class="debrief-section"><h2>Key observations</h2>${observationRows(d.keyObservations)}</section>

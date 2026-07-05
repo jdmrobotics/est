@@ -4,7 +4,7 @@ const slug = (value) => clean(value).toLowerCase().replace(/[^a-z0-9]+/g, '_').r
 
 export const TAXON_CSV_COLUMNS = [
   'taxon_key', 'scientific_name', 'common_name', 'taxonomic_level', 'group',
-  'native_status', 'default_habitat', 'notes'
+  'native_status', 'default_habitat', 'taxon_source', 'inaturalist_taxon_id', 'source_url', 'notes'
 ];
 
 export const TAXON_LEVELS = new Set(['species', 'genus', 'family', 'order', 'class', 'phylum', 'other']);
@@ -46,6 +46,9 @@ export function normalizeTaxon(input = {}, index = 0) {
     group: clean(input.group),
     native_status: clean(input.native_status),
     default_habitat: clean(input.default_habitat),
+    taxon_source: clean(input.taxon_source || input.source || 'project_list'),
+    inaturalist_taxon_id: clean(input.inaturalist_taxon_id || input.inat_id),
+    source_url: clean(input.source_url),
     notes: clean(input.notes)
   };
 }
@@ -115,7 +118,7 @@ export function buildQuickObservationDraft({
   notes = '',
   observedAt = new Date().toISOString()
 } = {}) {
-  const source = taxon ? 'project_list' : 'manual';
+  const source = taxon ? (clean(taxon.taxon_source) === 'regional_pack' || clean(taxon.taxon_pack_id) ? 'regional_pack' : 'project_list') : 'manual';
   const resolved = taxon || normalizeTaxon({ scientific_name: manualScientificName, common_name: manualCommonName });
   const hasTransect = !blank(transectSequence);
   const station = clean(stationSequence);
@@ -149,6 +152,11 @@ export function buildQuickObservationDraft({
     taxon_list_name: taxon?.list_name || '',
     taxon_key: taxon?.taxon_key || '',
     taxon_group: taxon?.group || '',
+    taxon_pack_id: taxon?.taxon_pack_id || '',
+    taxon_pack_name: taxon?.taxon_pack_name || '',
+    taxon_pack_version: taxon?.taxon_pack_version || '',
+    taxon_pack_region: taxon?.taxon_pack_region || '',
+    taxon_pack_review_status: taxon?.taxon_pack_review_status || '',
     quick_entry_mode: 'yes'
   };
 }
@@ -167,7 +175,44 @@ export function taxaToCsv(taxa = []) {
 export function sampleTaxonCsv() {
   return [
     TAXON_CSV_COLUMNS.join(','),
-    'demo_taxon_001,Example species,Example common name,species,Demo group,unknown,sand,Replace these rows with your approved project list.',
-    'demo_taxon_002,,Unidentified small fish,other,Demo group,unknown,open_water,Use a project-specific key for repeated field entries.'
+    'demo_taxon_001,Example species,Example common name,species,Demo group,unknown,sand,project_list,,,Replace these rows with your approved project list.',
+    'demo_taxon_002,,Unidentified small fish,other,Demo group,unknown,open_water,project_list,,,Use a project-specific key for repeated field entries.'
   ].join('\r\n') + '\r\n';
+}
+
+
+const INATURALIST_API = 'https://api.inaturalist.org/v1/taxa/autocomplete';
+
+/** Search the global iNaturalist taxonomy. Requires a live internet connection. */
+export async function searchINaturalistTaxa(query, { rank = '', perPage = 20 } = {}) {
+  const q = clean(query);
+  if (q.length < 2) throw new Error('Enter at least two characters to search the global iNaturalist taxonomy.');
+  const params = new URLSearchParams({ q, per_page: String(Math.max(1, Math.min(30, Number(perPage) || 20))) });
+  if (rank) params.set('rank', rank);
+  const response = await fetch(`${INATURALIST_API}?${params.toString()}`, { headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error(`iNaturalist lookup failed (${response.status}). Check connectivity and try again.`);
+  const json = await response.json();
+  return Array.isArray(json?.results) ? json.results : [];
+}
+
+/** Convert an iNaturalist taxon result into the EcoSurvey controlled-list record shape. */
+export function fromINaturalistTaxon(result = {}) {
+  const rank = clean(result.rank).toLowerCase();
+  const level = TAXON_LEVELS.has(rank) ? rank : 'other';
+  const id = clean(result.id);
+  const scientific = clean(result.name);
+  const common = clean(result.preferred_common_name || result.matched_term);
+  return normalizeTaxon({
+    taxon_key: id ? `inat_${id}` : scientific || common,
+    scientific_name: scientific,
+    common_name: common,
+    taxonomic_level: level,
+    group: clean(result.iconic_taxon_name || ''),
+    native_status: '',
+    default_habitat: '',
+    taxon_source: 'iNaturalist',
+    inaturalist_taxon_id: id,
+    source_url: id ? `https://www.inaturalist.org/taxa/${id}` : '',
+    notes: `Saved from iNaturalist taxonomy${result.rank ? ` (${result.rank})` : ''}.`
+  });
 }

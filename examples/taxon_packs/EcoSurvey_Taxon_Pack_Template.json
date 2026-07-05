@@ -1,0 +1,43 @@
+{
+  "format": "ecosurvey-taxon-pack",
+  "format_version": "1.0",
+  "manifest": {
+    "pack_id": "replace_with_stable_pack_id",
+    "name": "Replace with regional taxon pack name",
+    "version": "1.0.0",
+    "description": "Describe intended use, exclusions, and methods.",
+    "region_name": "Region or waterbody",
+    "country_or_waterbody": "Country / waterbody",
+    "geographic_scope": {
+      "bounds": { "min_lat": "", "min_lon": "", "max_lat": "", "max_lon": "" }
+    },
+    "habitat_scope": "Habitat coverage",
+    "taxonomic_scope": "Taxonomic coverage",
+    "review_status": "draft",
+    "reviewed_by": "",
+    "curator": "",
+    "published_date": "YYYY-MM-DD",
+    "license": "",
+    "source_summary": "Document authoritative sources and retrieval date.",
+    "sources": [
+      { "name": "Authority or dataset", "url": "https://example.org", "version": "", "retrieved_date": "YYYY-MM-DD", "license": "", "notes": "" }
+    ],
+    "starter_pack": false,
+    "notes": ""
+  },
+  "taxa": [
+    {
+      "taxon_key": "stable_taxon_key",
+      "scientific_name": "Genus species",
+      "common_name": "Common name",
+      "taxonomic_level": "species",
+      "group": "Fish / Invertebrate / Plant / etc.",
+      "native_status": "unknown",
+      "default_habitat": "mixed",
+      "taxon_source": "regional_pack",
+      "inaturalist_taxon_id": "",
+      "source_url": "",
+      "notes": ""
+    }
+  ]
+}

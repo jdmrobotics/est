@@ -1,8 +1,8 @@
-const CACHE = 'ecosurvey-field-v0.8.0';
+const CACHE = 'ecosurvey-field-v0.15.0';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './src/styles.css',
   './src/main.js', './src/schema.js', './src/db.js', './src/export.js', './src/qaqc.js', './src/map.js', './src/basemap.js', './src/media_capture.js', './src/tracking.js', './src/zip.js',
-  './src/validation.js', './src/species.js', './src/debrief.js', './icons/ecosurvey-icon.svg', './examples/Synthetic_Demo_Basemap.png', './examples/Synthetic_Demo_Basemap_metadata.json', './examples/EcoSurvey_species_list_template.csv'
+  './src/validation.js', './src/protocols.js', './src/sensor_streams.js', './src/sensor_profiles.js', './src/rov.js', './src/samples.js', './src/species.js', './src/taxon_packs.js', './src/debrief.js', './icons/ecosurvey-icon.svg', './assets/world-reference-ne110.geojson', './examples/Synthetic_Demo_Basemap.png', './examples/Synthetic_Demo_Basemap_metadata.json', './examples/EcoSurvey_species_list_template.csv', './examples/ROV_CTD_Sensor_Stream_Example.csv', './examples/taxon_packs/Mid_Atlantic_Estuary_Starter_Pack_v1.0.0.json', './examples/taxon_packs/EcoSurvey_Taxon_Pack_Template.json'
 ];
 
 self.addEventListener('install', (event) => {

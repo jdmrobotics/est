@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import { appendTrackPoint, bearingDegrees, metersBetween, summarizeTrack, transectFromEndpoints } from '../src/tracking.js';
+
+const a = { lat: 38.7800, lon: -75.0900, accuracy: 6, timestamp: '2026-07-03T12:00:00.000Z' };
+const b = { lat: 38.7801, lon: -75.0898, accuracy: 8, timestamp: '2026-07-03T12:00:05.000Z' };
+const c = { lat: 38.7802, lon: -75.0896, accuracy: 7, timestamp: '2026-07-03T12:00:10.000Z' };
+assert.ok(metersBetween(a, b) > 15 && metersBetween(a, b) < 30, 'distance should be physically plausible');
+assert.ok(bearingDegrees(a, b) > 0 && bearingDegrees(a, b) < 180, 'expected northeast bearing');
+let rows = appendTrackPoint([], a).points;
+assert.equal(rows.length, 1);
+assert.equal(appendTrackPoint(rows, { ...a, timestamp: '2026-07-03T12:00:01.000Z' }).added, false, 'near/rapid duplicate should be ignored');
+rows = appendTrackPoint(rows, b).points;
+rows = appendTrackPoint(rows, c).points;
+const summary = summarizeTrack(rows);
+assert.equal(summary.point_count, 3);
+assert.ok(summary.distance_m > 30);
+assert.equal(summary.duration_seconds, 10);
+assert.ok(summary.average_accuracy_m > 6 && summary.average_accuracy_m < 8);
+const transect = transectFromEndpoints(a, c);
+assert.ok(transect.length_m > 35);
+assert.ok(transect.bearing_deg > 0 && transect.bearing_deg < 180);
+console.log('GPS tracking utility smoke test passed.');
