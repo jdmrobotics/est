@@ -1,0 +1,3 @@
+taxon_key,scientific_name,common_name,taxonomic_level,group,native_status,default_habitat,notes
+demo_taxon_001,Example species,Example common name,species,Demo group,unknown,sand,Replace these rows with your approved project list.
+demo_taxon_002,,Unidentified small fish,other,Demo group,unknown,open_water,Use a project-specific key for repeated field entries.
